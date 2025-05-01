@@ -1,103 +1,117 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Image from "next/image";
+import cardList from "@/assets/cardslist";
+import {
+  ShieldCheckIcon,
+  GlobeAltIcon,
+  CheckCircleIcon,
+} from "@heroicons/react/24/outline";
+
+const iconMap = {
+  "shield-check": ShieldCheckIcon,
+  "globe-alt": GlobeAltIcon,
+  "check-circle": CheckCircleIcon,
+};
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.js
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [progress, setProgress] = useState(0);
+  const [stopAutoSwitch, setStopAutoSwitch] = useState(false);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  // Auto switch logic
+  useEffect(() => {
+    if (stopAutoSwitch) return;
+
+    const switchInterval = setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % cardList.length);
+    }, 5000);
+    return () => clearInterval(switchInterval);
+  }, [stopAutoSwitch]);
+
+  // Progress logic
+  useEffect(() => {
+    if (stopAutoSwitch) return;
+    setProgress(0);
+    const interval = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          return 100;
+        }
+        return prev + 1;
+      });
+    }, 30); // ~3s
+    return () => clearInterval(interval);
+  }, [activeIndex, stopAutoSwitch]);
+
+  const handleCardClick = (index) => {
+    setActiveIndex(index);
+    setStopAutoSwitch(true);
+  };
+
+  const activeCard = cardList[activeIndex];
+
+  return (
+    <div className="bg-section-bg min-h-screen pt-[68px] pb-[80px] md:pt-[48px] md:pb-[48px] px-4 md:px-8">
+      <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-6">
+        {/* Left Section */}
+        <div className="flex-1">
+          <h1 className="text-title md:text-title-mobile leading-title font-bold min-w-[536px] md:min-w-0">
+            Get enterprise-grade security
+          </h1>
+          <p className="text-subtitle leading-subtitle mt-[28px] mb-[32px]">
+            Regulate and control pipeline access your team. Configure the data region as per your need.
+          </p>
+
+          <div className="space-y-[24px]">
+            {cardList.map((card, index) => {
+              const Icon = iconMap[card.icon]; // Dynamically set the icon component
+              const isActive = index === activeIndex; // Check if this card is active
+              return (
+                <div
+                  key={card.id} // Ensure card.id is unique or replace it with another unique value
+                  onClick={() => handleCardClick(index)}
+                  className={`p-[16px] md:p-[12px] rounded-[12px] cursor-pointer transition-all duration-300 ${
+                    isActive ? "bg-white border border-card-active-border shadow-card-hover" : "bg-card-inactive"
+                  }`}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="relative w-10 h-10">
+                      <div
+                        className="absolute inset-0 rounded-full"
+                        style={{
+                          background: `conic-gradient(#3C3CC9 ${isActive ? progress * 3.6 : 0}deg, #e1e4ea 0deg)`,
+                        }}
+                      />
+                      <div className="absolute inset-1 bg-icon-bg rounded-full flex items-center justify-center">
+                        <Icon className={`w-6 h-6 ${isActive ? "text-icon-highlight" : "text-gray-500"}`} />
+                      </div>
+                    </div>
+                    <h3 className="text-progress-title md:text-progress-title-mobile leading-progress-title font-semibold">
+                      {card.title}
+                    </h3>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+        {/* Right Section */}
+        <div className="flex-1 flex justify-center md:justify-end">
+          <div className="w-full md:w-[496px] max-w-full mt-[24px] md:mt-0">
+            <Image
+              src={activeCard.image}
+              alt="Feature Preview"
+              width={496}
+              height={300}
+              className="object-cover"
+            />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
